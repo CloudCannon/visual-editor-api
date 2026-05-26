@@ -37,7 +37,7 @@
 		"src/**/*"
 	],
 	"dependencies": {
-		"@cloudcannon/configuration-types": "0.0.56"
+		"@cloudcannon/configuration-types": "0.0.57"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.15",
