@@ -252,12 +252,11 @@ export interface GetInputConfigOptions {
 	slug: string;
 }
 
-export interface FileNotFoundError extends Error {
-	message: 'File not found';
-}
-
-export interface CollectionNotFoundError extends Error {
-	message: 'Collection not found';
+export interface FileMetadata {
+	file_size: number | null;
+	created_at: string | null;
+	last_modified: string | Date | null;
+	data: any;
 }
 
 export interface CloudCannonVisualEditorAPIV1FileContent {
@@ -279,7 +278,7 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 	 * @throws {FileNotFoundError} If the file is not found
 	 * @returns Promise that resolves when the body content is set
 	 */
-	set(options: any): Promise<void>;
+	set(content: string): Promise<void>;
 
 	addEventListener(
 		event: 'change',
@@ -304,10 +303,7 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 	 * const value = await CloudCannon.data();
 	 * ```
 	 */
-	get(options?: {
-		slug?: string;
-		rewriteUrls?: boolean;
-	}): Promise<Record<string, any> | any[] | undefined>;
+	get(options?: { slug?: string }): Promise<Record<string, any> | any[] | undefined>;
 
 	/**
 	 * Sets data for a specific field
@@ -439,7 +435,7 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 * @throws {FileNotFoundError} If the file is not found
 	 * @returns Promise that resolves with the metadata of the file
 	 */
-	metadata(): Promise<any>;
+	metadata(): Promise<FileMetadata | undefined>;
 
 	// /**
 	//  * Deletes a file
@@ -565,7 +561,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 	 * @param loadingData - Optional loading state message
 	 * @returns Promise that resolves when loading state is updated
 	 */
-	setLoading(loadingData: string | undefined): Promise<any>;
+	setLoading(loadingData: string | undefined): Promise<void>;
 
 	/**
 	 * Uploads a file to the editor
