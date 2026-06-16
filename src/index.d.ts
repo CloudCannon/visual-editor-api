@@ -290,25 +290,29 @@ export interface GetInputConfigOptions {
 	slug: string;
 }
 
-/** Metadata describing a file, returned by `File.metadata()`. */
+/**
+ * Represents metadata describing a file. This object is returned by the
+ * `metadata()` method on a File.
+ */
 export interface FileMetadata {
-	/** The file's size in bytes (the length of its raw source), or `null` if unknown. */
+	/** This property holds the file's size in bytes (the length of its raw source), or `null` if unknown. */
 	file_size: number | null;
-	/** An ISO 8601 timestamp of when the file was created, or `null` if unknown. */
+	/** This property holds an ISO 8601 timestamp of when the file was created, or `null` if unknown. */
 	created_at: string | null;
-	/** A timestamp of the file's most recent change, or `null` if unknown. */
+	/** This property holds a timestamp of the file's most recent change, or `null` if unknown. */
 	last_modified: string | Date | null;
 	/**
-	 * The file's resolved output data: its front matter merged with the data
-	 * CloudCannon's build produces for it. The shape depends on the file, so this
-	 * is loosely typed.
+	 * This property holds the file's resolved output data: its front matter merged
+	 * with the data CloudCannon's build produces for it. The shape depends on the
+	 * file, so this is loosely typed.
 	 */
 	data: any;
 }
 
 /**
- * Body-content access for a file: everything after the front matter. Read or
- * replace it as a string.
+ * Provides body-content access for a file: everything after the front matter.
+ * This object is accessed through a File's `content` property. Additionally, you
+ * can read or replace a file's body as a string.
  */
 export interface CloudCannonVisualEditorAPIV1FileContent {
 	/**
@@ -356,7 +360,17 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 		listener: EventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
-	/** Removes a `change` listener previously added with `addEventListener`. */
+	/**
+	 * Removes a `change` listener previously added with `addEventListener`.
+	 * @example
+	 * In this example, we stop listening for body content changes on teardown.
+	 * ```javascript
+	 * const content = api.currentFile().content;
+	 * const onChange = () => console.log('Body content changed');
+	 * content.addEventListener('change', onChange);
+	 * content.removeEventListener('change', onChange);
+	 * ```
+	 */
 	removeEventListener(
 		event: 'change',
 		listener: EventListenerOrEventListenerObject | null,
@@ -365,8 +379,10 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 }
 
 /**
- * Structured-data access for a file: its front matter, or the full contents of a
- * data file. Read and write fields, and add, remove, or reorder array items.
+ * Provides structured-data access for a file: its front matter, or the full
+ * contents of a data file. This object is accessed through a File's `data`
+ * property. Additionally, you can read and write a file's fields, and add,
+ * remove, or reorder array items.
  */
 export interface CloudCannonVisualEditorAPIV1FileData {
 	/**
@@ -499,7 +515,17 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 		listener: EventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
-	/** Removes a `change` listener previously added with `addEventListener`. */
+	/**
+	 * Removes a `change` listener previously added with `addEventListener`.
+	 * @example
+	 * In this example, we stop listening for data changes on teardown.
+	 * ```javascript
+	 * const data = api.currentFile().data;
+	 * const onChange = () => console.log('Data changed');
+	 * data.addEventListener('change', onChange);
+	 * data.removeEventListener('change', onChange);
+	 * ```
+	 */
 	removeEventListener(
 		event: 'change',
 		listener: EventListenerOrEventListenerObject | null,
@@ -508,12 +534,15 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 }
 
 /**
- * A single file in your Site. Read and write its raw source, body content, and
- * structured data, read its metadata, and lock it while you edit.
+ * Represents a single file in your Site. This object is returned by the
+ * `currentFile()` and `file()` methods, and by a Collection's or Dataset's
+ * `items()` method. Additionally, you can read and write a File's raw source,
+ * body content, and structured data, read its metadata, and lock it while you
+ * edit.
  */
 export interface CloudCannonVisualEditorAPIV1File {
 	/**
-	 * The file's source path, relative to the Site root.
+	 * This property holds the file's source path, relative to the Site root.
 	 * @example
 	 * In this example, we read a file's source path.
 	 * ```javascript
@@ -523,7 +552,7 @@ export interface CloudCannonVisualEditorAPIV1File {
 	path: string;
 
 	/**
-	 * Structured-data access for this file (front matter, or a data file's contents).
+	 * This property provides structured-data access for this file (front matter, or a data file's contents).
 	 * @example
 	 * In this example, we read a field through the file's `data` object.
 	 * ```javascript
@@ -533,7 +562,7 @@ export interface CloudCannonVisualEditorAPIV1File {
 	data: CloudCannonVisualEditorAPIV1FileData;
 
 	/**
-	 * Body-content access for this file (everything after the front matter).
+	 * This property provides body-content access for this file (everything after the front matter).
 	 * @example
 	 * In this example, we read the body through the file's `content` object.
 	 * ```javascript
@@ -623,8 +652,8 @@ export interface CloudCannonVisualEditorAPIV1File {
 	/**
 	 * Listens for `change` and `delete` events on this file. `change` fires when
 	 * the file is created or updated (`event.detail.isNew` is `true` for a newly
-	 * created file); `delete` fires when it is removed. Remove the listener with
-	 * `removeEventListener` when your integration is torn down.
+	 * created file), while `delete` fires when it is removed. Remove the listener
+	 * with `removeEventListener` when your integration is torn down.
 	 * @example
 	 * In this example, we log messages when the file changes or is deleted.
 	 * ```javascript
@@ -638,7 +667,17 @@ export interface CloudCannonVisualEditorAPIV1File {
 		listener: EventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
-	/** Removes a `change` or `delete` listener previously added with `addEventListener`. */
+	/**
+	 * Removes a `change` or `delete` listener previously added with `addEventListener`.
+	 * @example
+	 * In this example, we stop listening for changes to the file on teardown.
+	 * ```javascript
+	 * const file = api.currentFile();
+	 * const onChange = () => console.log('Changed');
+	 * file.addEventListener('change', onChange);
+	 * file.removeEventListener('change', onChange);
+	 * ```
+	 */
 	removeEventListener(
 		event: 'change' | 'delete',
 		listener: EventListenerOrEventListenerObject | null,
@@ -660,12 +699,13 @@ export interface CloudCannonVisualEditorAPIV1File {
 }
 
 /**
- * A Collection of files, as configured under `collections_config`. List its
- * files and listen for changes to them.
+ * Represents a Collection of files, as configured under `collections_config` in your CloudCannon Configuration File in your CloudCannon Configuration File.
+ * This object is returned by the `collection()` and `collections()` methods. Additionally, you can call `items()` to list a Collection's
+ * files, or `addEventListener` to react to changes.
  */
 export interface CloudCannonVisualEditorAPIV1Collection {
 	/**
-	 * The Collection's key, as configured under `collections_config`.
+	 * This property holds the Collection's key, as configured under `collections_config` in your CloudCannon Configuration File.
 	 * @example
 	 * In this example, we read a Collection's key from its handle.
 	 * ```javascript
@@ -696,9 +736,9 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 	/**
 	 * Listens for `change` and `delete` events on any file in this Collection.
 	 * `change` fires when a file is created or updated (`event.detail.isNew` is
-	 * `true` for a newly created file); `delete` fires when one is removed.
-	 * `event.detail.sourcePath` identifies the file. Remove the listener with
-	 * `removeEventListener` when your integration is torn down.
+	 * `true` for a newly created file), while `delete` fires when one is removed.
+	 * `event.detail.sourcePath` holds the changed file's path. Remove the listener
+	 * with `removeEventListener` when your integration is torn down.
 	 * @example
 	 * In this example, we log the path of any post that changes.
 	 * ```javascript
@@ -712,7 +752,17 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 		listener: EventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
-	/** Removes a `change` or `delete` listener previously added with `addEventListener`. */
+	/**
+	 * Removes a `change` or `delete` listener previously added with `addEventListener`.
+	 * @example
+	 * In this example, we stop listening for changes to posts on teardown.
+	 * ```javascript
+	 * const posts = api.collection('posts');
+	 * const onChange = (event) => console.log('A post changed:', event.detail.sourcePath);
+	 * posts.addEventListener('change', onChange);
+	 * posts.removeEventListener('change', onChange);
+	 * ```
+	 */
 	removeEventListener(
 		event: 'change' | 'delete',
 		listener: EventListenerOrEventListenerObject | null,
@@ -721,12 +771,14 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 }
 
 /**
- * A Dataset, as configured under `data_config`. Read its file or files and
- * listen for changes to them.
+ * Represents a Dataset, as configured under `data_config` in your CloudCannon
+ * Configuration File. This object is returned by the `dataset()` and `datasets()`
+ * methods. Additionally, you can call `items()` to read a Dataset's file or
+ * files, or `addEventListener` to react to changes.
  */
 export interface CloudCannonVisualEditorAPIV1Dataset {
 	/**
-	 * The Dataset's key, as configured under `data_config`.
+	 * This property holds the Dataset's key, as configured under `data_config` in your CloudCannon Configuration File.
 	 * @example
 	 * In this example, we read a Dataset's key from its handle.
 	 * ```javascript
@@ -754,9 +806,9 @@ export interface CloudCannonVisualEditorAPIV1Dataset {
 	/**
 	 * Listens for `change` and `delete` events on any file in this Dataset.
 	 * `change` fires when a file is created or updated (`event.detail.isNew` is
-	 * `true` for a newly created file); `delete` fires when one is removed.
-	 * `event.detail.sourcePath` identifies the file. Remove the listener with
-	 * `removeEventListener` when your integration is torn down.
+	 * `true` for a newly created file), while `delete` fires when one is removed.
+	 * `event.detail.sourcePath` holds the changed file's path. Remove the listener
+	 * with `removeEventListener` when your integration is torn down.
 	 * @example
 	 * In this example, we log the path of any locale that changes.
 	 * ```javascript
@@ -770,7 +822,17 @@ export interface CloudCannonVisualEditorAPIV1Dataset {
 		listener: EventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
-	/** Removes a `change` or `delete` listener previously added with `addEventListener`. */
+	/**
+	 * Removes a `change` or `delete` listener previously added with `addEventListener`.
+	 * @example
+	 * In this example, we stop listening for changes to locales on teardown.
+	 * ```javascript
+	 * const locales = api.dataset('locales');
+	 * const onChange = (event) => console.log('A locale changed:', event.detail.sourcePath);
+	 * locales.addEventListener('change', onChange);
+	 * locales.removeEventListener('change', onChange);
+	 * ```
+	 */
 	removeEventListener(
 		event: 'change' | 'delete',
 		listener: EventListenerOrEventListenerObject | null,
@@ -779,8 +841,9 @@ export interface CloudCannonVisualEditorAPIV1Dataset {
 }
 
 /**
- * An editable region in the page preview, created with `createTextEditableRegion`.
- * Update its content programmatically with `setContent`.
+ * Represents an editable region in the page preview. This object is returned by
+ * the `createTextEditableRegion()` method. Additionally, you can call
+ * `setContent` to update the region's content programmatically.
  */
 export interface CloudCannonVisualEditorAPIV1TextEditableRegion {
 	/**
@@ -926,9 +989,9 @@ export interface CloudCannonVisualEditorAPIV1 {
 	/**
 	 * Listens for `change` and `delete` events across the entire Site. `change`
 	 * fires when any file is created or updated (`event.detail.isNew` is `true` for
-	 * a newly created file); `delete` fires when any file is removed.
-	 * `event.detail.sourcePath` identifies the file. Remove the listener with
-	 * `removeEventListener` when your integration is torn down.
+	 * a newly created file), while `delete` fires when any file is removed.
+	 * `event.detail.sourcePath` holds the changed file's path. Remove the listener
+	 * with `removeEventListener` when your integration is torn down.
 	 * @example
 	 * In this example, we log the path of any file that changes anywhere in the Site.
 	 * ```javascript
@@ -942,7 +1005,16 @@ export interface CloudCannonVisualEditorAPIV1 {
 		listener: EventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
-	/** Removes a `change` or `delete` listener previously added with `addEventListener`. */
+	/**
+	 * Removes a `change` or `delete` listener previously added with `addEventListener`.
+	 * @example
+	 * In this example, we stop listening for Site-wide changes on teardown.
+	 * ```javascript
+	 * const onChange = (event) => console.log('Changed:', event.detail.sourcePath);
+	 * api.addEventListener('change', onChange);
+	 * api.removeEventListener('change', onChange);
+	 * ```
+	 */
 	removeEventListener(
 		event: 'change' | 'delete',
 		listener: EventListenerOrEventListenerObject | null,
