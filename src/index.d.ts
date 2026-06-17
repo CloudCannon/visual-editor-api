@@ -254,9 +254,9 @@ export interface ArrayOptions {
 export interface AddArrayItemOptions extends ArrayOptions {
 	/** The position to insert at. Pass `null` to append to the end. */
 	index: number | null;
-	/** The value to insert. */
+	/** The value to insert. Provide either `value` for a new item, or `sourceIndex` to clone an existing one. */
 	value: any;
-	/** The index to clone the new item from when `value` is not provided. */
+	/** The index of an existing array item to clone, used instead of `value`. */
 	sourceIndex?: number;
 }
 
@@ -291,18 +291,18 @@ export interface GetInputConfigOptions {
 }
 
 /**
- * Represents metadata describing a file. This object is returned by the
+ * Represents metadata describing a file. Returned by the
  * `metadata()` method on a File.
  */
 export interface FileMetadata {
-	/** This property holds the file's size in bytes (the length of its raw source), or `null` if unknown. */
+	/** Holds the file's size in bytes (the length of its raw source), or `null` if unknown. */
 	file_size: number | null;
-	/** This property holds an ISO 8601 timestamp of when the file was created, or `null` if unknown. */
+	/** Holds an ISO 8601 timestamp of when the file was created, or `null` if unknown. */
 	created_at: string | null;
-	/** This property holds a timestamp of the file's most recent change, or `null` if unknown. */
+	/** Holds a timestamp of the file's most recent change, or `null` if unknown. */
 	last_modified: string | Date | null;
 	/**
-	 * This property holds the file's resolved output data: its front matter merged
+	 * Holds the file's resolved output data: its front matter merged
 	 * with the data CloudCannon's build produces for it. The shape depends on the
 	 * file, so this is loosely typed.
 	 */
@@ -311,7 +311,7 @@ export interface FileMetadata {
 
 /**
  * Provides body-content access for a file: everything after the front matter.
- * This object is accessed through a File's `content` property. Additionally, you
+ * Accessed through a File's `content` property. Additionally, you
  * can read or replace a file's body as a string.
  */
 export interface CloudCannonVisualEditorAPIV1FileContent {
@@ -344,7 +344,7 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 	set(content: string): Promise<void>;
 
 	/**
-	 * Listens for `change` events on this file's body content, fired whenever the
+	 * Listens for `change` events on the file's body content, fired whenever the
 	 * content is updated in the editor. Remove the listener with
 	 * `removeEventListener` when your integration is torn down.
 	 * @example
@@ -380,7 +380,7 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 
 /**
  * Provides structured-data access for a file: its front matter, or the full
- * contents of a data file. This object is accessed through a File's `data`
+ * contents of a data file. Accessed through a File's `data`
  * property. Additionally, you can read and write a file's fields, and add,
  * remove, or reorder array items.
  */
@@ -499,7 +499,7 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 	moveArrayItem(options: MoveArrayItemOptions): Promise<void>;
 
 	/**
-	 * Listens for `change` events on this file's structured data, fired whenever a
+	 * Listens for `change` events on the file's structured data, fired whenever a
 	 * field is updated in the editor. Remove the listener with `removeEventListener`
 	 * when your integration is torn down.
 	 * @example
@@ -534,7 +534,7 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 }
 
 /**
- * Represents a single file in your Site. This object is returned by the
+ * Represents a single file in your Site. Returned by the
  * `currentFile()` and `file()` methods, and by a Collection's or Dataset's
  * `items()` method. Additionally, you can read and write a File's raw source,
  * body content, and structured data, read its metadata, and lock it while you
@@ -542,31 +542,34 @@ export interface CloudCannonVisualEditorAPIV1FileData {
  */
 export interface CloudCannonVisualEditorAPIV1File {
 	/**
-	 * This property holds the file's source path, relative to the Site root.
+	 * Holds the file's source path, relative to the Site root.
 	 * @example
-	 * In this example, we read a file's source path.
+	 * In this example, we read a file's source path and log it.
 	 * ```javascript
 	 * const path = api.currentFile().path;
+	 * console.log(path);
 	 * ```
 	 */
 	path: string;
 
 	/**
-	 * This property provides structured-data access for this file (front matter, or a data file's contents).
+	 * Provides structured-data access for the file (front matter, or a data file's contents).
 	 * @example
-	 * In this example, we read a field through the file's `data` object.
+	 * In this example, we read the file's data through its `data` object and log it.
 	 * ```javascript
-	 * const title = await api.currentFile().data.get({ slug: 'title' });
+	 * const data = await api.currentFile().data.get();
+	 * console.log(data);
 	 * ```
 	 */
 	data: CloudCannonVisualEditorAPIV1FileData;
 
 	/**
-	 * This property provides body-content access for this file (everything after the front matter).
+	 * Provides body-content access for the file (everything after the front matter).
 	 * @example
-	 * In this example, we read the body through the file's `content` object.
+	 * In this example, we read the body through the file's `content` object and log it.
 	 * ```javascript
 	 * const body = await api.currentFile().content.get();
+	 * console.log(body);
 	 * ```
 	 */
 	content: CloudCannonVisualEditorAPIV1FileContent;
@@ -577,12 +580,13 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 * matter. Resolves to `undefined` if the file does not exist.
 	 * @returns A promise for the raw source string.
 	 * @example
-	 * In this example, we read the raw source of the file open in the editor.
+	 * In this example, we read the raw source of the file open in the editor and log it.
 	 * ```javascript
 	 * const raw = await api.currentFile().get();
+	 * console.log(raw);
 	 * ```
 	 */
-	get(): Promise<string>;
+	get(): Promise<string | undefined>;
 
 	/**
 	 * Replaces the file's entire raw source with the given string. Use this for
@@ -608,9 +612,10 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 * `undefined` if the file does not exist.
 	 * @returns A promise for the file's metadata.
 	 * @example
-	 * In this example, we read the metadata of the file open in the editor.
+	 * In this example, we read the metadata of the file open in the editor and log it.
 	 * ```javascript
 	 * const meta = await api.currentFile().metadata();
+	 * console.log(meta);
 	 * ```
 	 */
 	metadata(): Promise<FileMetadata | undefined>;
@@ -618,16 +623,16 @@ export interface CloudCannonVisualEditorAPIV1File {
 	// Not yet implemented: delete(), move(), duplicate().
 
 	/**
-	 * Claims an editing lock on this file so other Team Members cannot change it
-	 * while your integration writes to it. Resolves `{ readOnly }`: when `readOnly`
-	 * is `true`, another Team Member already holds the lock and you should not
-	 * write. Resolves to `undefined` if the file does not exist. Release the lock
-	 * with `releaseLock()` when you are done.
+	 * Claims an editing lock on the file so other Team Members cannot change it
+	 * while your integration writes to it. Resolves to `{ readOnly }`. When
+	 * `readOnly` is `true`, another Team Member already holds the lock for that
+	 * file and your integration should not write. Resolves to `undefined` if the
+	 * file does not exist. Release the lock with `releaseLock()` when you are done.
 	 * @returns A promise for the lock status, `{ readOnly: boolean }`.
 	 * @example
-	 * In this example, we claim the lock, write a field only if no one else holds it, then release it.
+	 * In this example, we claim the lock on the file we're editing, write a field only if no one else holds it, then release it.
 	 * ```javascript
-	 * const file = api.file('/_data/settings.yml');
+	 * const file = api.currentFile();
 	 * const { readOnly } = await file.claimLock();
 	 * if (!readOnly) {
 	 *   await file.data.set({ slug: 'status', value: 'in-progress' });
@@ -635,25 +640,24 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 * }
 	 * ```
 	 */
-	claimLock(): Promise<{ readOnly: boolean }>;
+	claimLock(): Promise<{ readOnly: boolean } | undefined>;
 
 	/**
 	 * Releases a lock claimed with `claimLock()`, letting other Team Members edit
 	 * the file again. Resolves to `undefined` if the file does not exist.
 	 * @returns A promise for the lock status, `{ readOnly: boolean }`.
 	 * @example
-	 * In this example, we release a lock previously claimed on a file.
+	 * In this example, we release a lock on the file we're editing.
 	 * ```javascript
-	 * await api.file('/_data/settings.yml').releaseLock();
+	 * await api.currentFile().releaseLock();
 	 * ```
 	 */
-	releaseLock(): Promise<{ readOnly: boolean }>;
+	releaseLock(): Promise<{ readOnly: boolean } | undefined>;
 
 	/**
-	 * Listens for `change` and `delete` events on this file. `change` fires when
-	 * the file is created or updated (`event.detail.isNew` is `true` for a newly
-	 * created file), while `delete` fires when it is removed. Remove the listener
-	 * with `removeEventListener` when your integration is torn down.
+	 * Listens for `change` and `delete` events on the file. `change` fires when
+	 * the file is created or updated, and `delete` when it is removed. Remove the
+	 * listener with `removeEventListener` when your integration is torn down.
 	 * @example
 	 * In this example, we log messages when the file changes or is deleted.
 	 * ```javascript
@@ -688,24 +692,27 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 * Returns the resolved Input configuration for a field, or `undefined` when the
 	 * field has no configuration (or the file does not exist).
 	 * @param options The field `slug`.
-	 * @returns A promise for the field's Input configuration, or `undefined`.
+	 * @returns A promise for the field's Input configuration.
 	 * @example
-	 * In this example, we read the resolved Input configuration for the `hero_image` field.
+	 * In this example, we read the resolved Input configuration for the `hero_image` field and log it.
 	 * ```javascript
 	 * const config = await api.currentFile().getInputConfig({ slug: 'hero_image' });
+	 * console.log(config);
 	 * ```
 	 */
 	getInputConfig(options: GetInputConfigOptions): Promise<Input | undefined>;
 }
 
 /**
- * Represents a Collection of files, as configured under `collections_config` in your CloudCannon Configuration File in your CloudCannon Configuration File.
- * This object is returned by the `collection()` and `collections()` methods. Additionally, you can call `items()` to list a Collection's
- * files, or `addEventListener` to react to changes.
+ * Represents a Collection of files, as configured under `collections_config` in
+ * your CloudCannon Configuration File. Returned by the `collection()` and
+ * `collections()` methods. Additionally, you can call `items()` to list a
+ * Collection's files, or `addEventListener` to react to changes.
  */
 export interface CloudCannonVisualEditorAPIV1Collection {
 	/**
-	 * This property holds the Collection's key, as configured under `collections_config` in your CloudCannon Configuration File.
+	 * Holds the Collection's key, as configured under `collections_config` in
+	 * your CloudCannon Configuration File.
 	 * @example
 	 * In this example, we read a Collection's key from its handle.
 	 * ```javascript
@@ -717,7 +724,7 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 
 	/**
 	 * Returns every file in the Collection as an array of File objects. The array
-	 * is empty when the Collection key isn't configured. Note: if the key is falsy,
+	 * is empty when the Collection key isn't configured. If the key is falsy,
 	 * the returned promise never resolves, so always pass a real Collection key.
 	 * @returns A promise for the Collection's files.
 	 * @example
@@ -735,10 +742,9 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 
 	/**
 	 * Listens for `change` and `delete` events on any file in this Collection.
-	 * `change` fires when a file is created or updated (`event.detail.isNew` is
-	 * `true` for a newly created file), while `delete` fires when one is removed.
-	 * `event.detail.sourcePath` holds the changed file's path. Remove the listener
-	 * with `removeEventListener` when your integration is torn down.
+	 * `change` fires when a file is created or updated, and `delete` when one is
+	 * removed. Remove the listener with `removeEventListener` when your integration
+	 * is torn down.
 	 * @example
 	 * In this example, we log the path of any post that changes.
 	 * ```javascript
@@ -772,13 +778,14 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 
 /**
  * Represents a Dataset, as configured under `data_config` in your CloudCannon
- * Configuration File. This object is returned by the `dataset()` and `datasets()`
+ * Configuration File. Returned by the `dataset()` and `datasets()`
  * methods. Additionally, you can call `items()` to read a Dataset's file or
  * files, or `addEventListener` to react to changes.
  */
 export interface CloudCannonVisualEditorAPIV1Dataset {
 	/**
-	 * This property holds the Dataset's key, as configured under `data_config` in your CloudCannon Configuration File.
+	 * Holds the Dataset's key, as configured under `data_config` in your
+	 * CloudCannon Configuration File.
 	 * @example
 	 * In this example, we read a Dataset's key from its handle.
 	 * ```javascript
@@ -791,24 +798,26 @@ export interface CloudCannonVisualEditorAPIV1Dataset {
 	/**
 	 * Returns the Dataset's file or files: a single File when the Dataset is
 	 * configured as one file, or an array of File objects when it's a folder.
-	 * Note: if the key is falsy or invalid, the returned promise never resolves, so
+	 * If the key is falsy or invalid, the returned promise never resolves, so
 	 * always pass a real Dataset key.
 	 * @returns A promise for the Dataset's file, or array of files.
 	 * @example
-	 * In this example, we read the `locales` Dataset's file or files, normalised to an array.
+	 * In this example, we read the `locales` Dataset's file or files, normalized to an array.
 	 * ```javascript
 	 * const result = await api.dataset('locales').items();
 	 * const items = Array.isArray(result) ? result : [result];
+	 * for (const file of items) {
+	 *   console.log(file.path);
+	 * }
 	 * ```
 	 */
 	items(): Promise<CloudCannonVisualEditorAPIV1File[] | CloudCannonVisualEditorAPIV1File>;
 
 	/**
 	 * Listens for `change` and `delete` events on any file in this Dataset.
-	 * `change` fires when a file is created or updated (`event.detail.isNew` is
-	 * `true` for a newly created file), while `delete` fires when one is removed.
-	 * `event.detail.sourcePath` holds the changed file's path. Remove the listener
-	 * with `removeEventListener` when your integration is torn down.
+	 * `change` fires when a file is created or updated, and `delete` when one is
+	 * removed. Remove the listener with `removeEventListener` when your integration
+	 * is torn down.
 	 * @example
 	 * In this example, we log the path of any locale that changes.
 	 * ```javascript
@@ -841,7 +850,7 @@ export interface CloudCannonVisualEditorAPIV1Dataset {
 }
 
 /**
- * Represents an editable region in the page preview. This object is returned by
+ * Represents an editable region in the page preview. Returned by
  * the `createTextEditableRegion()` method. Additionally, you can call
  * `setContent` to update the region's content programmatically.
  */
@@ -890,7 +899,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 
 	/**
 	 * Uploads a file through CloudCannon's asset handling and returns its path.
-	 * Pass `undefined` as the second argument for default behaviour, or an Input
+	 * Pass `undefined` as the second argument for default behavior, or an Input
 	 * configuration to control where the file is uploaded and which asset sources
 	 * or DAMs are offered. To upload into a specific field, use `file.data.upload`
 	 * instead. Resolves to `undefined` if the upload produces no path.
@@ -988,10 +997,9 @@ export interface CloudCannonVisualEditorAPIV1 {
 
 	/**
 	 * Listens for `change` and `delete` events across the entire Site. `change`
-	 * fires when any file is created or updated (`event.detail.isNew` is `true` for
-	 * a newly created file), while `delete` fires when any file is removed.
-	 * `event.detail.sourcePath` holds the changed file's path. Remove the listener
-	 * with `removeEventListener` when your integration is torn down.
+	 * fires when any file is created or updated, and `delete` when any file is
+	 * removed. Remove the listener with `removeEventListener` when your integration
+	 * is torn down.
 	 * @example
 	 * In this example, we log the path of any file that changes anywhere in the Site.
 	 * ```javascript
