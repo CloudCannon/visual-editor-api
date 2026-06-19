@@ -24,7 +24,7 @@ export interface CreateCustomDataPanelOptions {
 	/** The heading shown at the top of the Data Panel. */
 	title: string;
 	/**
-	 * Called whenever someone changes a value in the panel. Receives the full
+	 * Called whenever a Team Member changes a value in the panel. Receives the full
 	 * updated data object, not a diff.
 	 */
 	onChange: (data?: Record<string, unknown> | unknown[]) => void;
@@ -35,7 +35,7 @@ export interface CreateCustomDataPanelOptions {
 	data?: Record<string, unknown> | unknown[];
 	/**
 	 * Input configuration for the fields in `data`, using the same `_inputs`
-	 * shape as a CloudCannon configuration file.
+	 * shape as a CloudCannon Configuration File.
 	 */
 	config?: Cascade;
 	/**
@@ -225,7 +225,7 @@ export interface SetOptions {
  * Options for `data.edit()`.
  */
 export interface EditOptions {
-	/** The slug of the field to open for editing. */
+	/** The slug of the target field. */
 	slug: string;
 	/** Optional style hint for the editing surface. */
 	style?: string | null;
@@ -295,24 +295,54 @@ export interface GetInputConfigOptions {
  * `metadata()` method on a File.
  */
 export interface FileMetadata {
-	/** Holds the file's size in bytes (the length of its raw source), or `null` if unknown. */
+	/**
+	 * Holds the file's size in bytes (the length of its raw source), or `null` if unknown.
+	 * @example
+	 * In this example, we read the size of the file open in the editor.
+	 * ```javascript
+	 * const { file_size } = await api.currentFile().metadata();
+	 * console.log(file_size);
+	 * ```
+	 */
 	file_size: number | null;
-	/** Holds an ISO 8601 timestamp of when the file was created, or `null` if unknown. */
+	/**
+	 * Holds an ISO 8601 timestamp of when the file was created, or `null` if unknown.
+	 * @example
+	 * In this example, we read when the file was created.
+	 * ```javascript
+	 * const { created_at } = await api.currentFile().metadata();
+	 * console.log(created_at);
+	 * ```
+	 */
 	created_at: string | null;
-	/** Holds a timestamp of the file's most recent change, or `null` if unknown. */
+	/**
+	 * Holds a timestamp of the file's most recent change, or `null` if unknown.
+	 * @example
+	 * In this example, we read when the file was last changed.
+	 * ```javascript
+	 * const { last_modified } = await api.currentFile().metadata();
+	 * console.log(last_modified);
+	 * ```
+	 */
 	last_modified: string | Date | null;
 	/**
 	 * Holds the file's resolved output data: its front matter merged
 	 * with the data CloudCannon's build produces for it. The shape depends on the
 	 * file, so this is loosely typed.
+	 * @example
+	 * In this example, we read the file's resolved output data.
+	 * ```javascript
+	 * const { data } = await api.currentFile().metadata();
+	 * console.log(data);
+	 * ```
 	 */
 	data: any;
 }
 
 /**
- * Provides body-content access for a file: everything after the front matter.
- * Accessed through a File's `content` property. Additionally, you
- * can read or replace a file's body as a string.
+ * Accessed through a File's `content` property. Provides body-content access for
+ * a file: everything after the front matter. Additionally, you can read or
+ * replace a file's body as a string.
  */
 export interface CloudCannonVisualEditorAPIV1FileContent {
 	/**
@@ -320,9 +350,10 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 	 * string. Resolves to `undefined` if the file does not exist.
 	 * @returns A promise for the body content string.
 	 * @example
-	 * In this example, we read the body content of the file open in the editor.
+	 * In this example, we read the body content of the file open in the editor and log it.
 	 * ```javascript
 	 * const content = await api.currentFile().content.get();
+	 * console.log(content);
 	 * ```
 	 */
 	get(): Promise<string>;
@@ -330,7 +361,7 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 	/**
 	 * Replaces the file's body content with the given string. This marks the file
 	 * as having unsaved changes; a Team Member must save the Site to persist it.
-	 * Resolves to `undefined` if the file does not exist.
+	 * Has no effect if the file does not exist.
 	 * @param content The new body content, as a string.
 	 * @returns A promise that resolves once the change is applied to the editor.
 	 * @example
@@ -379,10 +410,9 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 }
 
 /**
- * Provides structured-data access for a file: its front matter, or the full
- * contents of a data file. Accessed through a File's `data`
- * property. Additionally, you can read and write a file's fields, and add,
- * remove, or reorder array items.
+ * Accessed through a File's `data` property. Provides structured-data access for
+ * a file: its front matter, or the full contents of a data file. Additionally,
+ * you can read and write a file's fields, and add, remove, or reorder array items.
  */
 export interface CloudCannonVisualEditorAPIV1FileData {
 	/**
@@ -394,18 +424,22 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 	 * @param options Optional `{ slug }` to read a single field.
 	 * @returns A promise for the data: an object, an array, or `undefined`.
 	 * @example
-	 * In this example, we read the whole front matter object, then read a single field by slug.
+	 * In this example, we read the whole front matter object, then a single field by slug, and log both.
 	 * ```javascript
 	 * const data = await api.currentFile().data.get();
 	 * const title = await api.currentFile().data.get({ slug: 'title' });
+	 * console.log(data, title);
 	 * ```
 	 */
-	get(options?: { slug?: string }): Promise<Record<string, any> | any[] | undefined>;
+	get(options?: {
+		/** The slug of a single field to read, instead of the whole object. */
+		slug?: string;
+	}): Promise<Record<string, any> | any[] | undefined>;
 
 	/**
 	 * Sets a single structured-data field. This marks the file as having unsaved
-	 * changes; a Team Member must save the Site to persist it. Resolves to
-	 * `undefined` if the file does not exist.
+	 * changes; a Team Member must save the Site to persist it. Has no effect if
+	 * the file does not exist.
 	 * @param options The field `slug` and its new `value`.
 	 * @returns A promise that resolves once the change is applied (with no value).
 	 * @example
@@ -418,8 +452,8 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 
 	/**
 	 * Opens the hosted Data Panel for a single field so a Team Member can edit it.
-	 * This is fire-and-forget: it returns immediately and does not wait for, or
-	 * report, the result of the edit.
+	 * The method returns immediately and does not wait for or report the result of
+	 * the edit.
 	 * @param options The field `slug`, with optional `style` and `position`.
 	 * @example
 	 * In this example, we open the Data Panel for the `title` field.
@@ -431,15 +465,18 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 
 	/**
 	 * Uploads a file to a specific field (for example, an image or file Input) and
-	 * returns the uploaded file's path. Resolves to `undefined` if the file does
-	 * not exist or the upload produces no path. For a general asset upload that is
-	 * not tied to a field, use the top-level `uploadFile`.
+	 * returns the uploaded file's path. Setting the field marks the file as having
+	 * unsaved changes; a Team Member must save the Site to persist it. Resolves to
+	 * `undefined` if the file does not exist or the upload produces no path. For a
+	 * general asset upload that is not tied to a field, use the top-level
+	 * `uploadFile`.
 	 * @param file The file to upload.
-	 * @param options The target field `slug`, with optional `style` and `position`.
+	 * @param options The target field `slug`.
 	 * @returns A promise for the uploaded file's path, or `undefined`.
 	 * @example
-	 * In this example, we upload a file into the `hero_image` field and read its path.
+	 * In this example, we upload the file chosen in a file input into the `hero_image` field and read its path.
 	 * ```javascript
+	 * const [file] = document.querySelector('input[type="file"]').files;
 	 * const path = await api.currentFile().data.upload(file, { slug: 'hero_image' });
 	 * ```
 	 */
@@ -447,8 +484,8 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 
 	/**
 	 * Adds an item to an array field. This marks the file as having unsaved
-	 * changes; a Team Member must save the Site to persist it. Resolves to
-	 * `undefined` if the file does not exist.
+	 * changes; a Team Member must save the Site to persist it. Has no effect if
+	 * the file does not exist.
 	 * @param options The field `slug`, the `index` to insert at (`null` to append),
 	 * and the `value`.
 	 * @returns A promise that resolves once the item is added.
@@ -466,8 +503,8 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 
 	/**
 	 * Removes an item from an array field by index. This marks the file as having
-	 * unsaved changes; a Team Member must save the Site to persist it. Resolves to
-	 * `undefined` if the file does not exist.
+	 * unsaved changes; a Team Member must save the Site to persist it. Has no
+	 * effect if the file does not exist.
 	 * @param options The field `slug` and the `index` to remove.
 	 * @returns A promise that resolves once the item is removed.
 	 * @example
@@ -481,8 +518,8 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 	/**
 	 * Moves an item within an array field, or between two array fields when
 	 * `toSlug` differs from `fromSlug`. This marks the file as having unsaved
-	 * changes; a Team Member must save the Site to persist it. Resolves to
-	 * `undefined` if the file does not exist.
+	 * changes; a Team Member must save the Site to persist it. Has no effect if
+	 * the file does not exist.
 	 * @param options `fromSlug` and `fromIndex` for the source, and `toIndex`
 	 * (with optional `toSlug`) for the destination.
 	 * @returns A promise that resolves once the item is moved.
@@ -535,8 +572,8 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 
 /**
  * Represents a single file in your Site. Returned by the
- * `currentFile()` and `file()` methods, and by a Collection's or Dataset's
- * `items()` method. Additionally, you can read and write a File's raw source,
+ * `currentFile()`, `file()`, and `files()` methods, and by a Collection's or
+ * Dataset's `items()` method. Additionally, you can read and write a File's raw source,
  * body content, and structured data, read its metadata, and lock it while you
  * edit.
  */
@@ -553,23 +590,23 @@ export interface CloudCannonVisualEditorAPIV1File {
 	path: string;
 
 	/**
-	 * Provides structured-data access for the file (front matter, or a data file's contents).
+	 * Provides structured-data access for the file (front matter, or a data file's
+	 * contents). Use the methods on the FileData object to read and write the data.
 	 * @example
-	 * In this example, we read the file's data through its `data` object and log it.
+	 * In this example, we get the FileData object for the file open in the editor.
 	 * ```javascript
-	 * const data = await api.currentFile().data.get();
-	 * console.log(data);
+	 * const data = api.currentFile().data;
 	 * ```
 	 */
 	data: CloudCannonVisualEditorAPIV1FileData;
 
 	/**
 	 * Provides body-content access for the file (everything after the front matter).
+	 * Use the methods on the FileContent object to read and write the body.
 	 * @example
-	 * In this example, we read the body through the file's `content` object and log it.
+	 * In this example, we get the FileContent object for the file open in the editor.
 	 * ```javascript
-	 * const body = await api.currentFile().content.get();
-	 * console.log(body);
+	 * const content = api.currentFile().content;
 	 * ```
 	 */
 	content: CloudCannonVisualEditorAPIV1FileContent;
@@ -592,8 +629,7 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 * Replaces the file's entire raw source with the given string. Use this for
 	 * files that aren't edited through structured data, such as a
 	 * `robots.txt`. This marks the file as having unsaved changes; a Team Member
-	 * must save the Site to persist it. Resolves to `undefined` if the file does
-	 * not exist.
+	 * must save the Site to persist it. Has no effect if the file does not exist.
 	 * @param value The new raw source, as a string.
 	 * @returns A promise that resolves once the change is applied.
 	 * @example
@@ -607,9 +643,11 @@ export interface CloudCannonVisualEditorAPIV1File {
 	set(value: string): Promise<void>;
 
 	/**
-	 * Returns the file's metadata: `{ file_size, created_at, last_modified, data }`.
-	 * Metadata is read-only and cannot be written through the API. Resolves to
-	 * `undefined` if the file does not exist.
+	 * Returns the file's metadata: `{ file_size, created_at, last_modified, data }`,
+	 * where `data` is the file's resolved output data (its front matter merged with
+	 * the data CloudCannon's build produces for it), not the same as the File's
+	 * `data` object. Metadata is read-only and cannot be written through the API.
+	 * Resolves to `undefined` if the file does not exist.
 	 * @returns A promise for the file's metadata.
 	 * @example
 	 * In this example, we read the metadata of the file open in the editor and log it.
@@ -691,7 +729,6 @@ export interface CloudCannonVisualEditorAPIV1File {
 	/**
 	 * Returns the resolved Input configuration for a field, or `undefined` when the
 	 * field has no configuration (or the file does not exist).
-	 * @param options The field `slug`.
 	 * @returns A promise for the field's Input configuration.
 	 * @example
 	 * In this example, we read the resolved Input configuration for the `hero_image` field and log it.
@@ -723,9 +760,11 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 	collectionKey: string;
 
 	/**
-	 * Returns every file in the Collection as an array of File objects. The array
-	 * is empty when the Collection key isn't configured. If the key is falsy,
-	 * the returned promise never resolves, so always pass a real Collection key.
+	 * Returns every file in the Collection as an array of File objects. A
+	 * non-matching key (a valid string that matches no configured Collection)
+	 * resolves to an empty array. A falsy key (an empty string or `undefined`)
+	 * never resolves the returned promise, so always pass a real Collection key.
+	 * A Dataset differs here: its `items()` never resolves for a non-matching key.
 	 * @returns A promise for the Collection's files.
 	 * @example
 	 * In this example, we list every file in the `posts` Collection and log each path.
@@ -778,9 +817,9 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 
 /**
  * Represents a Dataset, as configured under `data_config` in your CloudCannon
- * Configuration File. Returned by the `dataset()` and `datasets()`
- * methods. Additionally, you can call `items()` to read a Dataset's file or
- * files, or `addEventListener` to react to changes.
+ * Configuration File. Returned by the `dataset()` method. Additionally, you can
+ * call `items()` to read a Dataset's file or files, or `addEventListener` to
+ * react to changes.
  */
 export interface CloudCannonVisualEditorAPIV1Dataset {
 	/**
@@ -798,8 +837,10 @@ export interface CloudCannonVisualEditorAPIV1Dataset {
 	/**
 	 * Returns the Dataset's file or files: a single File when the Dataset is
 	 * configured as one file, or an array of File objects when it's a folder.
-	 * If the key is falsy or invalid, the returned promise never resolves, so
-	 * always pass a real Dataset key.
+	 * A falsy key (an empty string or `undefined`) or a non-matching key (a valid
+	 * string that matches no configured Dataset) never resolves the returned
+	 * promise, so always pass a real Dataset key. A Collection differs here: its
+	 * `items()` resolves to an empty array for a non-matching key.
 	 * @returns A promise for the Dataset's file, or array of files.
 	 * @example
 	 * In this example, we read the `locales` Dataset's file or files, normalized to an array.
@@ -919,12 +960,12 @@ export interface CloudCannonVisualEditorAPIV1 {
 
 	/**
 	 * Returns the file currently open in the Visual Editor. Not every page has an
-	 * associated file; this throws when the open page has none, so wrap it in a
-	 * `try`/`catch`.
+	 * associated file, and this throws when the open page has none.
 	 * @returns The file open in the preview.
 	 * @throws {Error} `'No current file path'` when no file is open.
 	 * @example
-	 * In this example, we read the open file, handling the case where the page has none.
+	 * In this example, we read the open file, wrapping the call in a `try`/`catch`
+	 * to handle a page with no associated file.
 	 * ```javascript
 	 * try {
 	 *   const file = api.currentFile();
@@ -949,7 +990,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 	file(path: string): CloudCannonVisualEditorAPIV1File;
 	/**
 	 * Returns the Collection with the given key, as configured under
-	 * `collections_config` in your CloudCannon configuration file.
+	 * `collections_config` in your CloudCannon Configuration File.
 	 * @param key The Collection key.
 	 * @returns The Collection.
 	 * @example
@@ -961,7 +1002,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 	collection(key: string): CloudCannonVisualEditorAPIV1Collection;
 	/**
 	 * Returns the Dataset with the given key, as configured under `data_config` in
-	 * your CloudCannon configuration file.
+	 * your CloudCannon Configuration File.
 	 * @param key The Dataset key.
 	 * @returns The Dataset.
 	 * @example
@@ -1031,6 +1072,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 
 	/**
 	 * Type guard that returns `true` when `obj` is a File object.
+	 * @param obj The value to check.
 	 * @example
 	 * In this example, we narrow an unknown value to a File before using it.
 	 * ```javascript
@@ -1042,6 +1084,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 	isAPIFile(obj: unknown): obj is CloudCannonVisualEditorAPIV1File;
 	/**
 	 * Type guard that returns `true` when `obj` is a Collection object.
+	 * @param obj The value to check.
 	 * @example
 	 * In this example, we narrow an unknown value to a Collection before using it.
 	 * ```javascript
@@ -1053,6 +1096,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 	isAPICollection(obj: unknown): obj is CloudCannonVisualEditorAPIV1Collection;
 	/**
 	 * Type guard that returns `true` when `obj` is a Dataset object.
+	 * @param obj The value to check.
 	 * @example
 	 * In this example, we narrow an unknown value to a Dataset before using it.
 	 * ```javascript
