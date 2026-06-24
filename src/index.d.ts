@@ -15,10 +15,9 @@ import type {
  */
 export interface CreateCustomDataPanelOptions {
 	/**
-	 * A stable identifier for the panel, returned as the `panelId` and passed to
-	 * `destroyCustomDataPanel` to close it. When omitted, CloudCannon generates a
-	 * seven-character base-36 id (digits `0`-`9` and lowercase `a`-`z`, e.g.
-	 * `k4j92xq`). Treat it as an opaque token.
+	 * A stable identifier for the panel. Pass it to `destroyCustomDataPanel` to
+	 * close the panel. When omitted, CloudCannon generates a seven-character
+	 * base-36 id (digits `0`-`9` and lowercase `a`-`z`, e.g. `k4j92xq`).
 	 */
 	id?: string;
 	/** The heading shown at the top of the Data Panel. */
@@ -227,7 +226,7 @@ export interface SetOptions {
 export interface EditOptions {
 	/** The slug of the target field. */
 	slug: string;
-	/** Optional style hint for the editing surface. */
+	/** Set to `"sidebar"` to open the field in the Data Editor sidebar instead of a floating Data Panel. */
 	style?: string | null;
 	/** The click coordinates and the bounding rectangle of the element being edited, used to position the panel. */
 	position?: {
@@ -311,7 +310,7 @@ export interface FileMetadata {
 	 * In this example, we read when the file was created.
 	 * ```javascript
 	 * const { created_at } = await api.currentFile().metadata();
-	 * console.log(created_at);
+	 * console.log(`Created at ${new Date(created_at).toLocaleString()}`);
 	 * ```
 	 */
 	created_at: string | null;
@@ -989,10 +988,12 @@ export interface CloudCannonVisualEditorAPIV1 {
 	 */
 	file(path: string): CloudCannonVisualEditorAPIV1File;
 	/**
-	 * Returns the Collection with the given key, as configured under
-	 * `collections_config` in your CloudCannon Configuration File.
+	 * Returns a Collection object for the given key, as configured under
+	 * `collections_config` in your CloudCannon Configuration File. The object
+	 * provides methods to list the Collection's items and listen for changes,
+	 * not the items themselves.
 	 * @param key The Collection key.
-	 * @returns The Collection.
+	 * @returns A Collection object with methods to list items and subscribe to changes.
 	 * @example
 	 * In this example, we reference the `posts` Collection by key.
 	 * ```javascript
@@ -1179,12 +1180,12 @@ export interface CloudCannonVisualEditorAPIV1 {
 	): Promise<CloudCannonVisualEditorAPIV1TextEditableRegion>;
 
 	/**
-	 * Opens a custom Data Panel in the Visual Editor and resolves with its
-	 * `panelId`. When `options.id` is omitted, CloudCannon generates a
-	 * seven-character base-36 id. Pass the returned `panelId` to
+	 * Opens a custom Data Panel in the Visual Editor and resolves with the
+	 * panel's id. When `options.id` is omitted, CloudCannon generates a
+	 * seven-character base-36 id. Pass the returned id to
 	 * `destroyCustomDataPanel` to close the panel.
 	 * @param options Configuration for the panel and its Inputs.
-	 * @returns A promise for the panel's `panelId`.
+	 * @returns A promise for the panel's id.
 	 * @example
 	 * In this example, we open a custom Data Panel and log its data whenever it changes.
 	 * ```javascript
@@ -1196,8 +1197,8 @@ export interface CloudCannonVisualEditorAPIV1 {
 	 */
 	createCustomDataPanel(options: CreateCustomDataPanelOptions): Promise<string>;
 	/**
-	 * Closes the custom Data Panel with the given `panelId`.
-	 * @param id The `panelId` returned by `createCustomDataPanel`.
+	 * Closes the custom Data Panel with the given id.
+	 * @param id The id returned by `createCustomDataPanel`.
 	 * @returns A promise that resolves once the panel is closed.
 	 * @example
 	 * In this example, we close a custom Data Panel by its id.
