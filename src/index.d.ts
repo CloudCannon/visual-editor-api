@@ -52,9 +52,18 @@ export interface CreateCustomDataPanelOptions {
 	allowFullDataCascade?: boolean;
 }
 
-type EventListenerParameters = Parameters<EventTarget['addEventListener']>;
-type EventListenerOrEventListenerObject = EventListenerParameters[1];
-type EventListenerOptions = EventListenerParameters[2];
+export type EditEvent = CustomEvent<{
+	isNew: boolean;
+	sourcePath: string;
+}>;
+
+type EditEventListener = (evt: EditEvent) => void;
+interface EditEventListenerObject {
+	handleEvent(object: EditEvent): void;
+}
+
+type EditEventListenerOrEventListenerObject = EditEventListener | EditEventListenerObject;
+type EventListenerOptions = Parameters<EventTarget['addEventListener']>[2];
 
 /**
  * Interface defining the public API for interacting with CloudCannon's Visual Editor.
@@ -254,7 +263,7 @@ export interface AddArrayItemOptions extends ArrayOptions {
 	/** The position to insert at. Pass `null` to append to the end. */
 	index: number | null;
 	/** The value to insert. Provide either `value` for a new item, or `sourceIndex` to clone an existing one. */
-	value: any;
+	value?: any;
 	/** The index of an existing array item to clone, used instead of `value`. */
 	sourceIndex?: number;
 }
@@ -323,7 +332,7 @@ export interface FileMetadata {
 	 * console.log(last_modified);
 	 * ```
 	 */
-	last_modified: string | Date | null;
+	last_modified: string | null;
 	/**
 	 * Holds the file's resolved output data: its front matter merged
 	 * with the data CloudCannon's build produces for it. The shape depends on the
@@ -355,7 +364,7 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 	 * console.log(content);
 	 * ```
 	 */
-	get(): Promise<string>;
+	get(): Promise<string | undefined>;
 
 	/**
 	 * Replaces the file's body content with the given string. This marks the file
@@ -372,40 +381,6 @@ export interface CloudCannonVisualEditorAPIV1FileContent {
 	 * ```
 	 */
 	set(content: string): Promise<void>;
-
-	/**
-	 * Listens for `change` events on the file's body content, fired whenever the
-	 * content is updated in the editor. Remove the listener with
-	 * `removeEventListener` when your integration is torn down.
-	 * @example
-	 * In this example, we log a message whenever the body content changes.
-	 * ```javascript
-	 * api.currentFile().content.addEventListener('change', () => {
-	 *   console.log('Body content changed');
-	 * });
-	 * ```
-	 */
-	addEventListener(
-		event: 'change',
-		listener: EventListenerOrEventListenerObject | null,
-		options?: EventListenerOptions | boolean
-	): void;
-	/**
-	 * Removes a `change` listener previously added with `addEventListener`.
-	 * @example
-	 * In this example, we stop listening for body content changes on teardown.
-	 * ```javascript
-	 * const content = api.currentFile().content;
-	 * const onChange = () => console.log('Body content changed');
-	 * content.addEventListener('change', onChange);
-	 * content.removeEventListener('change', onChange);
-	 * ```
-	 */
-	removeEventListener(
-		event: 'change',
-		listener: EventListenerOrEventListenerObject | null,
-		options?: EventListenerOptions | boolean
-	): void;
 }
 
 /**
@@ -479,7 +454,7 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 	 * const path = await api.currentFile().data.upload(file, { slug: 'hero_image' });
 	 * ```
 	 */
-	upload(file: File, options: EditOptions): Promise<string | undefined>;
+	upload(file: File, options: { slug: string }): Promise<string | undefined>;
 
 	/**
 	 * Adds an item to an array field. This marks the file as having unsaved
@@ -533,40 +508,6 @@ export interface CloudCannonVisualEditorAPIV1FileData {
 	 * ```
 	 */
 	moveArrayItem(options: MoveArrayItemOptions): Promise<void>;
-
-	/**
-	 * Listens for `change` events on the file's structured data, fired whenever a
-	 * field is updated in the editor. Remove the listener with `removeEventListener`
-	 * when your integration is torn down.
-	 * @example
-	 * In this example, we log a message whenever any field's data changes.
-	 * ```javascript
-	 * api.currentFile().data.addEventListener('change', () => {
-	 *   console.log('Data changed');
-	 * });
-	 * ```
-	 */
-	addEventListener(
-		event: 'change',
-		listener: EventListenerOrEventListenerObject | null,
-		options?: EventListenerOptions | boolean
-	): void;
-	/**
-	 * Removes a `change` listener previously added with `addEventListener`.
-	 * @example
-	 * In this example, we stop listening for data changes on teardown.
-	 * ```javascript
-	 * const data = api.currentFile().data;
-	 * const onChange = () => console.log('Data changed');
-	 * data.addEventListener('change', onChange);
-	 * data.removeEventListener('change', onChange);
-	 * ```
-	 */
-	removeEventListener(
-		event: 'change',
-		listener: EventListenerOrEventListenerObject | null,
-		options?: EventListenerOptions | boolean
-	): void;
 }
 
 /**
@@ -705,7 +646,7 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 */
 	addEventListener(
 		event: 'change' | 'delete',
-		listener: EventListenerOrEventListenerObject | null,
+		listener: EditEventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
 	/**
@@ -721,7 +662,7 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 */
 	removeEventListener(
 		event: 'change' | 'delete',
-		listener: EventListenerOrEventListenerObject | null,
+		listener: EditEventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
 
@@ -793,7 +734,7 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 	 */
 	addEventListener(
 		event: 'change' | 'delete',
-		listener: EventListenerOrEventListenerObject | null,
+		listener: EditEventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
 	/**
@@ -809,7 +750,7 @@ export interface CloudCannonVisualEditorAPIV1Collection {
 	 */
 	removeEventListener(
 		event: 'change' | 'delete',
-		listener: EventListenerOrEventListenerObject | null,
+		listener: EditEventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
 }
@@ -868,7 +809,7 @@ export interface CloudCannonVisualEditorAPIV1Dataset {
 	 */
 	addEventListener(
 		event: 'change' | 'delete',
-		listener: EventListenerOrEventListenerObject | null,
+		listener: EditEventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
 	/**
@@ -884,7 +825,7 @@ export interface CloudCannonVisualEditorAPIV1Dataset {
 	 */
 	removeEventListener(
 		event: 'change' | 'delete',
-		listener: EventListenerOrEventListenerObject | null,
+		listener: EditEventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
 }
@@ -1036,7 +977,18 @@ export interface CloudCannonVisualEditorAPIV1 {
 	 * ```
 	 */
 	collections(): Promise<CloudCannonVisualEditorAPIV1Collection[]>;
-
+	/**
+	 * Returns every configured Dataset in the Site as an array of Dataset
+	 * objects.
+	 * @returns A promise for all Datasets.
+	 * @example
+	 * In this example, we list every Dataset in the Site and log each key.
+	 * ```javascript
+	 * const datasets = await api.datasets();
+	 * for (const dataset of datasets) console.log(dataset.datasetKey);
+	 * ```
+	 */
+	datasets(): Promise<CloudCannonVisualEditorAPIV1Dataset[]>;
 	/**
 	 * Listens for `change` and `delete` events across the entire Site. `change`
 	 * fires when any file is created or updated, and `delete` when any file is
@@ -1052,7 +1004,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 	 */
 	addEventListener(
 		event: 'change' | 'delete',
-		listener: EventListenerOrEventListenerObject | null,
+		listener: EditEventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
 	/**
@@ -1067,7 +1019,7 @@ export interface CloudCannonVisualEditorAPIV1 {
 	 */
 	removeEventListener(
 		event: 'change' | 'delete',
-		listener: EventListenerOrEventListenerObject | null,
+		listener: EditEventListenerOrEventListenerObject | null,
 		options?: EventListenerOptions | boolean
 	): void;
 
