@@ -606,13 +606,13 @@ export interface CloudCannonVisualEditorAPIV1File {
 	 * `readOnly` is `true`, another Team Member already holds the lock for that
 	 * file and your integration should not write. Resolves to `undefined` if the
 	 * file does not exist. Release the lock with `releaseLock()` when you are done.
-	 * @returns A promise for the lock status, `{ readOnly: boolean }`.
+	 * @returns A promise for the lock status, `{ readOnly: boolean }`, or `undefined` if the file does not exist.
 	 * @example
 	 * In this example, we claim the lock on the file we're editing, write a field only if no one else holds it, then release it.
 	 * ```javascript
 	 * const file = api.currentFile();
-	 * const { readOnly } = await file.claimLock();
-	 * if (!readOnly) {
+	 * const lock = await file.claimLock();
+	 * if (lock && !lock.readOnly) {
 	 *   await file.data.set({ slug: 'status', value: 'in-progress' });
 	 *   await file.releaseLock();
 	 * }
@@ -623,7 +623,7 @@ export interface CloudCannonVisualEditorAPIV1File {
 	/**
 	 * Releases a lock claimed with `claimLock()`, letting other Team Members edit
 	 * the file again. Resolves to `undefined` if the file does not exist.
-	 * @returns A promise for the lock status, `{ readOnly: boolean }`.
+	 * @returns A promise for the lock status, `{ readOnly: boolean }`, or `undefined` if the file does not exist.
 	 * @example
 	 * In this example, we release a lock on the file we're editing.
 	 * ```javascript
