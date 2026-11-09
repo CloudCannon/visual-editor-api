@@ -40,7 +40,7 @@
 		"@cloudcannon/configuration-types": "0.0.66"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.6.4",
+		"@biomejs/biome": "2.6.6",
 		"typescript": "7.0.2"
 	}
 }
